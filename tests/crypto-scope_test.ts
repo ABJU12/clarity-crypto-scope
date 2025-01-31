@@ -30,7 +30,7 @@ Clarinet.test({
 });
 
 Clarinet.test({
-  name: "Ensure can log transactions for tracked addresses",
+  name: "Ensure can log transactions and retrieve pages",
   async fn(chain: Chain, accounts: Map<string, Account>) {
     const deployer = accounts.get("deployer")!;
     const wallet1 = accounts.get("wallet_1")!;
@@ -49,5 +49,16 @@ Clarinet.test({
       )
     ]);
     assertEquals(block.receipts[1].result, '(ok u0)');
+
+    block = chain.mineBlock([
+      Tx.contractCall("crypto-scope", "get-transactions-page",
+        [
+          types.principal(wallet1.address),
+          types.uint(0)
+        ],
+        deployer.address
+      )
+    ]);
+    assertEquals(block.receipts[0].result.includes('amount: u1000'), true);
   }
 });
