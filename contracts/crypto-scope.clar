@@ -5,6 +5,7 @@
 (define-constant err-owner-only (err u100))
 (define-constant err-invalid-address (err u101))
 (define-constant err-not-tracked (err u102))
+(define-constant max-tx-per-page u50)
 
 ;; Data structures
 (define-map tracked-addresses principal bool)
@@ -53,4 +54,21 @@
 
 (define-read-only (get-transaction (address principal) (tx-id uint))
   (map-get? transaction-logs { address: address, tx-id: tx-id })
+)
+
+(define-read-only (get-transactions-page (address principal) (page uint))
+  (let
+    (
+      (start-id (* page max-tx-per-page))
+      (end-id (+ start-id max-tx-per-page))
+    )
+    (filter not-none 
+      (map 
+        (lambda (id) 
+          (map-get? transaction-logs { address: address, tx-id: id })
+        )
+        (list-range-uint start-id end-id)
+      )
+    )
+  )
 )
